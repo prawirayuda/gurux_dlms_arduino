@@ -129,6 +129,7 @@ int com_readSerialPort(
   unsigned char eopFound = 0;
   uint16_t lastReadIndex = frameData.position;
   uint32_t start = millis();
+  // GXTRACE_INT(GET_STR_FROM_EEPROM("come to serial port \n"), NULL);
   do
   {
     available = Serial.available();
@@ -380,10 +381,12 @@ int com_getAssociationView()
   gxReplyData reply;
   mes_init(&data);
   reply_init(&reply);
+  GXTRACE_INT(GET_STR_FROM_EEPROM("check point1"), NULL);
   if ((ret = Client.GetObjectsRequest(&data)) != 0 ||
       (ret = com_readDataBlock(&data, &reply)) != 0 ||
       (ret = Client.ParseObjects(&reply.data)) != 0)
   {
+      GXTRACE_INT(GET_STR_FROM_EEPROM("check point2"), NULL);
   }
   //Parse object one at the time. This can be used if there is a limited amount of the memory available.
   /*
@@ -928,34 +931,53 @@ int com_readAllObjects(const char* invocationCounter)
   //Read just wanted objects withour serializating the association view.
   char* data = NULL;
   //Read Logical Device Name
-  gxData ldn;
-  cosem_init(BASE(ldn), DLMS_OBJECT_TYPE_DATA, "0.0.42.0.0.255");
-  com_read(BASE(ldn), 2);
-  obj_toString(BASE(ldn), &data);
-  GXTRACE(GET_STR_FROM_EEPROM("Logical Device Name"), data);
-  obj_clear(BASE(ldn));
-  free(data);
-  //Read clock
-  gxClock clock1;
-  cosem_init(BASE(clock1), DLMS_OBJECT_TYPE_CLOCK, "0.0.1.0.0.255");
-  com_read(BASE(clock1), 3);
-  com_read(BASE(clock1), 2);
-  obj_toString(BASE(clock1), &data);
-  GXTRACE(GET_STR_FROM_EEPROM("Clock"), data);
-  obj_clear(BASE(clock1));
-  free(data);
-  /*
-     TODO: This is an example how to read profile generic.
+  // gxData ldn;
+  // cosem_init(BASE(ldn), DLMS_OBJECT_TYPE_DATA, "0.0.42.0.0.255");
+  // com_read(BASE(ldn), 2);
+  // obj_toString(BASE(ldn), &data);
+  // GXTRACE(GET_STR_FROM_EEPROM("Logical Device Name"), data);
+  // obj_clear(BASE(ldn));
+  // free(data);
+  // GXTRACE(GET_STR_FROM_EEPROM("come"), NULL);
+  // //Read clock
+  // gxClock clock1;
+  // cosem_init(BASE(clock1), DLMS_OBJECT_TYPE_CLOCK, "0.0.1.0.0.255");
+  // com_read(BASE(clock1), 1);
+  // com_read(BASE(clock1), 2);
+  // com_read(BASE(clock1), 3);
+  // com_read(BASE(clock1), 4);
+  // com_read(BASE(clock1), 5);
+  // com_read(BASE(clock1), 6);
+  // com_read(BASE(clock1), 7);
+  // com_read(BASE(clock1), 8);
+  // com_read(BASE(clock1), 9);
+  // // com_read(BASE(clock1), 2);
+  // obj_toString(BASE(clock1), &data);
+  // GXTRACE(GET_STR_FROM_EEPROM("Clock>>"), data);
+  // obj_clear(BASE(clock1));
+  // free(data);
+
+//     TODO: This is an example how to read profile generic.
     //Read Profile generic.
-    gxProfileGeneric pg;
-    cosem_init(BASE(pg), DLMS_OBJECT_TYPE_PROFILE_GENERIC, "1.0.99.1.0.255");
-    com_read(BASE(pg), 3);
-    com_readRowsByEntry(&pg, 1, 2);
-    obj_toString(BASE(pg), &data);
-    GXTRACE(GET_STR_FROM_EEPROM("Load profile"), data);
-    obj_clear(BASE(pg));
+    // gxProfileGeneric pg;
+    // cosem_init(BASE(pg), DLMS_OBJECT_TYPE_PROFILE_GENERIC, "1.0.99.1.0.255");
+    // com_read(BASE(pg), 3);
+    // com_readRowsByEntry(&pg, 1, 2);
+    // obj_toString(BASE(pg), &data);
+    // GXTRACE(GET_STR_FROM_EEPROM("Load profile "), data);
+    // obj_clear(BASE(pg));
+    // free(data);
+    //Read Register Active Power
+    gxRegister active_power;
+    cosem_init(BASE(active_power),DLMS_OBJECT_TYPE_REGISTER, "1.1.21.25.0.255");
+    com_read(BASE(active_power),1);  // attribute index 2 for get the value 1 for get the name of logical name 
+    com_read(BASE(active_power),2);  // attribute index 2 for get the value 1 for get the name of logical name 
+    com_read(BASE(active_power),3);  // attribute index 2 for get the value 1 for get the name of logical name 
+    // com_read(BASE(active_power),1);
+    obj_toString(BASE(active_power), &data);
+    GXTRACE(GET_STR_FROM_EEPROM("Active Val: "), data);
+    obj_clear(BASE(active_power));
     free(data);
-  */
   //Release dynamically allocated objects.
   Client.ReleaseObjects();
   return ret;
@@ -1001,6 +1023,7 @@ void loop() {
     GXTRACE(GET_STR_FROM_EEPROM("Start reading"), NULL);
     //TODO: Change logical name of the frame counter if it's used.
     ret = com_readAllObjects("0.0.43.1.0.255");
+    // ret = com_readAllObjects("1.0.99.1.0.255");
     com_close();
   }
 }
